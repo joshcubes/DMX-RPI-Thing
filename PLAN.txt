@@ -1,3 +1,11 @@
 PLAN
 
+So far, the idea is to use a Raspberry Pi 0 W
+    - Has Wifi
+    - Has GPIO
+    - Inexpensive
+Then, I'm going to attepmt to make an Art-Net to DMX converter and then attempt to run this through the GPIO pins on the pi.
+From reaserch it might be neccasary to use a voltage booster or something different to provide the full voltage which the DMX spec requires idk about this though needs testing.
+If I do need this I'm probably going to an arduino or somthing like that because I already have it on hand.
+
 1: 
