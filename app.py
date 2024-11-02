@@ -15,16 +15,27 @@ artnetUniverse = 0
 # Creates Artnet socket on the selected IP and Port
 artNet = python_artnet.Artnet(artnetBindIp)
 
+previousBuffer = []
+
 while True:
     try:
         # First get the latest Art-Net data
         artNetBuffer = artNet.readBuffer()
+        if artNetBuffer == previousBuffer:
+            print("Nothing Changed")
+            changed = False
+        else:
+            previousBuffer = artNetBuffer
+            changed = True
+            
+            
         # And make sure we actually got something
         if artNetBuffer is not None:
             # Get the packet from the buffer for the specific universe
             artNetPacket = artNetBuffer[artnetUniverse]
             # And make sure the packet has some data
-            if artNetPacket.data is not None:
+            if (artNetPacket.data is not None) and (changed == True):
+                print("SHIT THE PACKET IS NOT EMPTY")
                 # Stores the packet data array
                 dmxPacket = artNetPacket.data
                 sequenceNo = artNetPacket.sequence
@@ -37,7 +48,8 @@ while True:
                     print(dmxPacket[i-1], end=" ")
                 # Print a newline so things look nice :)
                 print("")
-                
+            elif changed == True:
+                print("Empty")
         time.sleep(0.1)
         
     except KeyboardInterrupt:
