@@ -8,4 +8,5 @@ Then, I'm going to attepmt to make an Art-Net to DMX converter and then attempt 
 From reaserch it might be neccasary to use a voltage booster or something different to provide the full voltage which the DMX spec requires idk about this though needs testing.
 If I do need this I'm probably going to an arduino or somthing like that because I already have it on hand.
 
-1: 
+1: Initial Idea probably going to be written in python then if it needs speed I'll rewrite it in something else.
+2: Might run a simple lighting console through an oscilloscope to capture packets. 
