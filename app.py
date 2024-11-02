@@ -1,59 +1,60 @@
+from stupidArtnet import StupidArtnetServer
 import time
-import python_artnet
 
-debug = True
 
-# What DMX channels we want to listen to
-dmxChannels = [1,2,3,4,5,6]
+# create a callback to handle data when received
+def test_callback(data):
+    """Test function to receive callback data."""
+    # the received data is an array
+    # of the channels value (no headers)
+    print('Received new data \n', data)
 
-### ArtNet Config ###
-artnetBindIp = "0.0.0.0"
-artnetUniverse = 0
 
-### Art-Net Setup ###
-# Sets debug in Art-Net module.
-# Creates Artnet socket on the selected IP and Port
-artNet = python_artnet.Artnet(artnetBindIp)
+# a Server object initializes with the following data
+# universe 			= DEFAULT 0
+# subnet   			= DEFAULT 0
+# net      			= DEFAULT 0
+# setSimplified     = DEFAULT True
+# callback_function = DEFAULT None
 
-previousBuffer = []
 
-while True:
-    try:
-        # First get the latest Art-Net data
-        artNetBuffer = artNet.readBuffer()
-        if artNetBuffer == previousBuffer:
-            print("Nothing Changed")
-            changed = False
-        else:
-            previousBuffer = artNetBuffer
-            changed = True
-            
-            
-        # And make sure we actually got something
-        if artNetBuffer is not None:
-            # Get the packet from the buffer for the specific universe
-            artNetPacket = artNetBuffer[artnetUniverse]
-            # And make sure the packet has some data
-            if (artNetPacket.data is not None) and (changed == True):
-                print("SHIT THE PACKET IS NOT EMPTY")
-                # Stores the packet data array
-                dmxPacket = artNetPacket.data
-                sequenceNo = artNetPacket.sequence
-                
-                # Then print out the data from each channel
-                print("Sequence no: ", sequenceNo)
-                print("Received data: ", end="")
-                for i in dmxChannels:
-                    # Lists in python start at 0, so to access a specific DMX channel you have to subtract one
-                    print(dmxPacket[i-1], end=" ")
-                # Print a newline so things look nice :)
-                print("")
-            elif changed == True:
-                print("Empty")
-        time.sleep(0.1)
-        
-    except KeyboardInterrupt:
-        break
+# You can use universe only
+universe = 1
+a = StupidArtnetServer()
 
-# Close the various connections cleanly so nothing explodes :)
-artNet.close()
+# For every universe we would like to receive,
+# add a new listener with a optional callback
+# the return is an id for the listener
+u1_listener = a.register_listener(
+    universe, callback_function=test_callback)
+
+
+# or disable simplified mode to use nets and subnets as per spec
+# subnet = 1 (would have been universe 17 in simplified mode)
+# net = 0
+# a.register_listener(universe, sub=subnet, net=net,
+#                    setSimplified=False, callback_function=test_callback)
+
+
+# print object state
+print(a)
+
+# giving it some time for the demo
+time.sleep(3)
+
+# if you prefer not using callbacks, the channel data
+# is also available in the method get_buffer()
+# use the given id to access it
+buffer = a.get_buffer(u1_listener)
+
+# Remember to check the buffer size, as this may vary from 512
+n_data = len(buffer)
+if n_data > 0:
+    # in which channel 1 would be
+    print('Channel 1: ', buffer[0])
+
+    # and channel 20 would be
+    print('Channel 20: ', buffer[19])
+
+# Cleanup when you are done
+del a
