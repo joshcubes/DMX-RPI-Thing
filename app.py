@@ -1,60 +1,66 @@
-from stupidArtnet import StupidArtnetServer
+from stupidArtnet import StupidArtnet
 import time
+import random
 
+# THESE ARE MOST LIKELY THE VALUES YOU WILL BE NEEDING
+target_ip = '192.168.0.201'		# typically in 2.x or 10.x range
+universe = 0 										# see docs
+packet_size = 512								
 
-# create a callback to handle data when received
-def test_callback(data):
-    """Test function to receive callback data."""
-    # the received data is an array
-    # of the channels value (no headers)
-    print('Received new data \n', data)
+# CREATING A STUPID ARTNET OBJECT
+# SETUP NEEDS A FEW ELEMENTS
+# TARGET_IP   = DEFAULT 127.0.0.1
+# UNIVERSE    = DEFAULT 0
+# PACKET_SIZE = DEFAULT 512
+# FRAME_RATE  = DEFAULT 30
+# ISBROADCAST = DEFAULT FALSE
+a = StupidArtnet(target_ip, universe, packet_size, 30, True, True)
 
+# MORE ADVANCED CAN BE SET WITH SETTERS IF NEEDED
+# NET         = DEFAULT 0
+# SUBNET      = DEFAULT 0
 
-# a Server object initializes with the following data
-# universe 			= DEFAULT 0
-# subnet   			= DEFAULT 0
-# net      			= DEFAULT 0
-# setSimplified     = DEFAULT True
-# callback_function = DEFAULT None
+# CHECK INIT
 
+# YOU CAN CREATE YOUR OWN BYTE ARRAY OF PACKET_SIZE
+packet = bytearray(packet_size)		# create packet for Artnet
+for i in range(packet_size):			# fill packet with sequential values
+    packet[i] = (i % 256)
 
-# You can use universe only
-universe = 1
-a = StupidArtnetServer()
+# ... AND SET IT TO STUPID ARTNET
+a.set(packet)						# only on changes
 
-# For every universe we would like to receive,
-# add a new listener with a optional callback
-# the return is an id for the listener
-u1_listener = a.register_listener(
-    universe, callback_function=test_callback)
+# ALL PACKETS ARE SAVED IN THE CLASS, YOU CAN CHANGE SINGLE VALUES
+a.set_single_value(1, 255)			# set channel 1 to 255
 
+# ... AND SEND
+a.show()							# send data
 
-# or disable simplified mode to use nets and subnets as per spec
-# subnet = 1 (would have been universe 17 in simplified mode)
-# net = 0
-# a.register_listener(universe, sub=subnet, net=net,
-#                    setSimplified=False, callback_function=test_callback)
+# OR USE STUPIDARTNET FUNCTIONS
+a.flash_all()						# send single packet with all channels at 255
 
+time.sleep(1)						# wait a bit, 1 sec
 
-# print object state
-print(a)
+a.blackout()						# send single packet with all channels at 0
+a.see_buffer()
 
-# giving it some time for the demo
-time.sleep(3)
+rate = 50
+sleep = 1/rate
+channel = 1
+while True:
+    try:
+        channel = random.randint(1,512)
+            
+        y = random.randint(0,255)
+        
+        a.set_single_value(channel,y)
+        a.show()
+        time.sleep(sleep)
+    
+    
+    except KeyboardInterrupt:
+        break
 
-# if you prefer not using callbacks, the channel data
-# is also available in the method get_buffer()
-# use the given id to access it
-buffer = a.get_buffer(u1_listener)
-
-# Remember to check the buffer size, as this may vary from 512
-n_data = len(buffer)
-if n_data > 0:
-    # in which channel 1 would be
-    print('Channel 1: ', buffer[0])
-
-    # and channel 20 would be
-    print('Channel 20: ', buffer[19])
-
-# Cleanup when you are done
+    
+# CLEANUP IN THE END
 del a
